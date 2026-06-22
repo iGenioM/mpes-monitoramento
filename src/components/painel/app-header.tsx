@@ -13,9 +13,9 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
@@ -64,17 +64,18 @@ export function AppHeader({
           />
 
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Matheus Coutinho</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              render={
-                <Link href="/">
-                  <IconLogout className="size-4" />
-                  Sair
-                </Link>
-              }
-            />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>Matheus Coutinho</DropdownMenuLabel>
+              <DropdownMenuItem
+                variant="destructive"
+                render={
+                  <Link href="/">
+                    <IconLogout className="size-4" />
+                    Sair
+                  </Link>
+                }
+              />
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
