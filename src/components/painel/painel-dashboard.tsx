@@ -97,7 +97,6 @@ export function PainelDashboard() {
   const [tematica, setTematica] = useState("Todas")
   const [statusFiltro, setStatusFiltro] = useState("Todos")
   const [page, setPage] = useState(1)
-  const [filtersOpen, setFiltersOpen] = useState(false)
   const [alertsOpen, setAlertsOpen] = useState(false)
 
   const filteredAlerts = useMemo(() => {
@@ -296,57 +295,41 @@ export function PainelDashboard() {
         />
       </div>
 
-      <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-        <CollapsibleTrigger
-          render={
-            <Button variant="outline" className="w-full justify-between sm:w-auto">
-              Filtros
-              <IconChevronDown
-                className={cn(
-                  "size-4 transition-transform",
-                  filtersOpen && "rotate-180"
-                )}
-              />
-            </Button>
-          }
-        />
-        <CollapsibleContent className="pt-4">
-          <Card size="sm">
-            <CardContent className="grid gap-4 sm:grid-cols-3">
-              <FilterSelect
-                id="municipio"
-                label="Município"
-                value={municipio}
-                options={municipiosFiltro}
-                onChange={(value) => {
-                  setMunicipio(value)
-                  setPage(1)
-                }}
-              />
-              <FilterSelect
-                id="tematica"
-                label="Temática"
-                value={tematica}
-                options={tematicasFiltro}
-                onChange={(value) => {
-                  setTematica(value)
-                  setPage(1)
-                }}
-              />
-              <FilterSelect
-                id="status"
-                label="Status"
-                value={statusFiltro}
-                options={["Todos", ...Object.values(statusLabels)]}
-                onChange={(value) => {
-                  setStatusFiltro(value)
-                  setPage(1)
-                }}
-              />
-            </CardContent>
-          </Card>
-        </CollapsibleContent>
-      </Collapsible>
+      <Card size="sm">
+        <CardContent className="grid gap-4 sm:grid-cols-3">
+          <FilterSelect
+            id="municipio"
+            label="Município"
+            value={municipio}
+            options={municipiosFiltro}
+            onChange={(value) => {
+              setMunicipio(value)
+              setPage(1)
+            }}
+          />
+          <FilterSelect
+            id="tematica"
+            label="Temática"
+            value={tematica}
+            options={tematicasFiltro}
+            onChange={(value) => {
+              setTematica(value)
+              setPage(1)
+            }}
+          />
+          <FilterSelect
+            id="status"
+            label="Status"
+            value={statusFiltro}
+            options={["Todos", ...Object.values(statusLabels)]}
+            onChange={(value) => {
+              setStatusFiltro(value)
+              setPage(1)
+            }}
+          />
+          
+        </CardContent>
+      </Card>
 
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm">

@@ -16,6 +16,8 @@ import {
   YAxis,
 } from "recharts"
 import {
+  IconChevronLeft,
+  IconChevronRight,
   IconDots,
   IconFileTypePdf,
   IconFilter,
@@ -23,6 +25,8 @@ import {
   IconTableExport,
 } from "@tabler/icons-react"
 
+import { FundBalanceBar } from "@/components/shared/fund-balance-bar"
+import { defaultGestaoFilters, GestaoFilters } from "@/components/painel/gestao-filters"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -48,6 +52,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import {
   Table,
@@ -59,19 +70,20 @@ import {
 } from "@/components/ui/table"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
-  distribuicaoAnexo,
-  distribuicaoTipologia,
-  evolucaoAnual as evolucaoAnualData,
-  evolucaoMensal,
-  gestaoKpis,
-  gestaoProjetos,
-  investimentoPorMunicipio,
-  investimentoPorTipo,
-  projetosPorAnexo,
+  gestaoStatusFiltro,
+  type GestaoFilterState,
 } from "@/lib/data/gestao"
+import { buildGestaoFilteredView } from "@/lib/data/gestao-filter-logic"
 import { statusColors, statusLabels } from "@/lib/data/painel"
-import { formatCurrency, formatNumber } from "@/lib/format"
+import {
+  formatChartCurrency,
+  formatCurrency,
+  formatCurrencyBillions,
+  formatNumber,
+} from "@/lib/format"
 import { cn } from "@/lib/utils"
+
+const PAGE_SIZE = 10
 
 const GestaoTematicoMap = dynamic(
   () =>
@@ -101,7 +113,7 @@ const GestaoMap = dynamic(
 )
 
 const municipioChartConfig = {
-  valor: { label: "Valor (mi)", color: "var(--chart-1)" },
+  valor: { label: "Valor (R$ mi)", color: "var(--chart-1)" },
   quantidade: { label: "Projetos", color: "var(--chart-2)" },
 } satisfies ChartConfig
 
@@ -115,72 +127,135 @@ const anexoBarConfig = {
 } satisfies ChartConfig
 
 const tipoBarConfig = {
-  valor: { label: "Investimento (mi)", color: "var(--chart-3)" },
+  valor: { label: "Investimento (R$ mi)", color: "var(--chart-3)" },
+} satisfies ChartConfig
+
+const eixoChartConfig = {
+  contratado: { label: "Contratado (R$ mi)", color: "#94a3b8" },
+  executado: { label: "Executado (R$ mi)", color: "var(--chart-1)" },
 } satisfies ChartConfig
 
 export function GestaoDashboard() {
+  const [gestaoFilters, setGestaoFilters] =
+    useState<GestaoFilterState>(defaultGestaoFilters)
   const [municipioModoValor, setMunicipioModoValor] = useState(true)
   const [isEvolucaoAnual, setIsEvolucaoAnual] = useState(false)
   const [search, setSearch] = useState("")
+  const [showFilters, setShowFilters] = useState(false)
+  const [statusFilter, setStatusFilter] = useState("todos")
+  const [page, setPage] = useState(1)
+
+  const viewData = useMemo(
+    () => buildGestaoFilteredView(gestaoFilters),
+    [gestaoFilters]
+  )
+
+  const saldoDisponivel =
+    viewData.kpis.envelopeTotal - viewData.kpis.investimentoExecutado
+  const indiceExecucao =
+    (viewData.kpis.investimentoExecutado / viewData.kpis.investimentoPrevisto) * 100
 
   const municipioData = useMemo(
     () =>
-      investimentoPorMunicipio.map((item) => ({
+      viewData.investimentoPorMunicipio.map((item) => ({
         municipio: item.municipio,
         valor: item.valor,
         quantidade: item.quantidade,
       })),
-    []
+    [viewData.investimentoPorMunicipio]
   )
 
   const evolucaoData = useMemo(
     () =>
       isEvolucaoAnual
-        ? evolucaoAnualData.map(({ ano, previsto, executado }) => ({
+        ? viewData.evolucaoAnual.map(({ ano, previsto, executado }) => ({
             periodo: ano,
             previsto,
             executado,
           }))
-        : evolucaoMensal.map(({ mes, previsto, executado }) => ({
+        : viewData.evolucaoMensal.map(({ mes, previsto, executado }) => ({
             periodo: mes,
             previsto,
             executado,
           })),
-    [isEvolucaoAnual]
+    [isEvolucaoAnual, viewData.evolucaoAnual, viewData.evolucaoMensal]
   )
 
-  const filteredProjetos = gestaoProjetos.filter((projeto) => {
+  const filteredProjetos = useMemo(() => {
     const query = search.trim().toLowerCase()
-    if (!query) return true
-    return [projeto.nome, projeto.contrato, projeto.municipio, projeto.instituicao]
-      .join(" ")
-      .toLowerCase()
-      .includes(query)
-  })
+    return viewData.projetos.filter((projeto) => {
+      if (statusFilter !== "todos" && projeto.status !== statusFilter) return false
+      if (!query) return true
+      return [projeto.nome, projeto.contrato, projeto.municipio, projeto.instituicao]
+        .join(" ")
+        .toLowerCase()
+        .includes(query)
+    })
+  }, [search, statusFilter, viewData.projetos])
+
+  function handleGestaoFiltersChange(next: GestaoFilterState) {
+    setGestaoFilters(next)
+    setPage(1)
+  }
+
+  const totalPages = Math.max(1, Math.ceil(filteredProjetos.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const paginatedProjetos = filteredProjetos.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  )
+  const rangeStart =
+    filteredProjetos.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1
+  const rangeEnd = Math.min(currentPage * PAGE_SIZE, filteredProjetos.length)
+
+  function resetPage() {
+    setPage(1)
+  }
 
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-        <KpiCard label="Total de projetos" value={formatNumber(gestaoKpis.totalProjetos)} />
+      <GestaoFilters filters={gestaoFilters} onChange={handleGestaoFiltersChange} />
+
+      <FundBalanceBar
+        envelopeTotal={viewData.kpis.envelopeTotal}
+        totalContratado={viewData.kpis.investimentoPrevisto}
+        investimentoExecutado={viewData.kpis.investimentoExecutado}
+        title="Saldo disponível do fundo — Gestão"
+        description="Envelope TTAC destinado ao Espírito Santo"
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          label="Total de projetos"
+          value={formatNumber(viewData.kpis.totalProjetos)}
+        />
         <KpiCard
           label="Projetos em execução"
-          value={formatNumber(gestaoKpis.projetosEmExecucao)}
+          value={formatNumber(viewData.kpis.projetosEmExecucao)}
         />
         <KpiCard
           label="Número de beneficiários"
-          value={formatNumber(gestaoKpis.beneficiarios)}
+          value={formatNumber(viewData.kpis.beneficiarios)}
         />
         <KpiCard
           label="Área total cadastrada"
-          value={`${formatNumber(gestaoKpis.areaCadastradaHa)} ha`}
+          value={`${formatNumber(viewData.kpis.areaCadastradaHa)} ha`}
         />
         <KpiCard
           label="Investimento executado"
-          value={formatCurrency(gestaoKpis.investimentoExecutado)}
+          value={formatCurrencyBillions(viewData.kpis.investimentoExecutado)}
         />
         <KpiCard
           label="Investimento previsto"
-          value={formatCurrency(gestaoKpis.investimentoPrevisto)}
+          value={formatCurrencyBillions(viewData.kpis.investimentoPrevisto)}
+        />
+        <KpiCard
+          label="Saldo disponível"
+          value={formatCurrencyBillions(saldoDisponivel)}
+        />
+        <KpiCard
+          label="Índice de execução"
+          value={`${indiceExecucao.toFixed(1)}%`}
         />
       </div>
 
@@ -189,7 +264,7 @@ export function GestaoDashboard() {
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
               <CardTitle className="text-base">
-                Valor investido por município (milhões R$)
+                Valor investido por município (R$ mi)
               </CardTitle>
               <CardDescription>Região do Rio Doce — Espírito Santo</CardDescription>
             </div>
@@ -212,8 +287,23 @@ export function GestaoDashboard() {
               <BarChart data={municipioData} margin={{ left: 8, right: 8 }}>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="municipio" tickLine={false} axisLine={false} fontSize={11} />
-                <YAxis tickLine={false} axisLine={false} fontSize={11} />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  fontSize={11}
+                  tickFormatter={(v) => `${v} mi`}
+                />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value) =>
+                        municipioModoValor
+                          ? formatChartCurrency(Number(value), "mi")
+                          : `${value} projetos`
+                      }
+                    />
+                  }
+                />
                 <Bar
                   dataKey={municipioModoValor ? "valor" : "quantidade"}
                   fill={`var(--color-${municipioModoValor ? "valor" : "quantidade"})`}
@@ -238,12 +328,80 @@ export function GestaoDashboard() {
       </div>
 
       <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Execução por eixo temático (R$ mi)</CardTitle>
+          <CardDescription>
+            Valor contratado vs. executado por eixo do TTAC
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={eixoChartConfig} className="aspect-[16/9] w-full">
+            <BarChart
+              data={viewData.execucaoPorEixo}
+              layout="vertical"
+              margin={{ left: 8, right: 48 }}
+            >
+              <CartesianGrid horizontal={false} />
+              <XAxis
+                type="number"
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v) => `${v} mi`}
+              />
+              <YAxis
+                type="category"
+                dataKey="eixo"
+                tickLine={false}
+                axisLine={false}
+                width={130}
+                fontSize={11}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(value, name) => [
+                      formatChartCurrency(Number(value), "mi"),
+                      name === "contratado" ? "Contratado" : "Executado",
+                    ]}
+                  />
+                }
+              />
+              <Bar
+                dataKey="contratado"
+                fill="var(--color-contratado)"
+                radius={[0, 4, 4, 0]}
+                barSize={12}
+              />
+              <Bar
+                dataKey="executado"
+                fill="var(--color-executado)"
+                radius={[0, 4, 4, 0]}
+                barSize={12}
+              />
+            </BarChart>
+          </ChartContainer>
+          <ul className="mt-4 space-y-1 text-sm text-muted-foreground">
+            {viewData.execucaoPorEixo.map((item) => (
+              <li key={item.eixo} className="flex justify-between gap-4">
+                <span>{item.eixo}</span>
+                <span className="tabular-nums font-medium text-foreground">
+                  {item.percentual}% executado
+                </span>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
         <CardHeader className="flex flex-row items-start justify-between gap-4">
           <div>
             <CardTitle className="text-base">
               Evolução temporal dos valores investidos
             </CardTitle>
-            <CardDescription>Previsto vs. executado (milhões R$)</CardDescription>
+            <CardDescription>
+              Previsto vs. executado ({isEvolucaoAnual ? "R$ bi" : "R$ mi"})
+            </CardDescription>
           </div>
           <ToggleGroup
             value={[isEvolucaoAnual ? "anual" : "mensal"]}
@@ -263,8 +421,23 @@ export function GestaoDashboard() {
             <LineChart data={evolucaoData} margin={{ left: 8, right: 8 }}>
               <CartesianGrid vertical={false} />
               <XAxis dataKey="periodo" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} />
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v) => (isEvolucaoAnual ? `${v} bi` : `${v} mi`)}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(value) =>
+                      formatChartCurrency(
+                        Number(value),
+                        isEvolucaoAnual ? "bi" : "mi"
+                      )
+                    }
+                  />
+                }
+              />
               <ChartLegend content={<ChartLegendContent />} />
               <Line
                 type="monotone"
@@ -292,7 +465,7 @@ export function GestaoDashboard() {
           </CardHeader>
           <CardContent>
             <ChartContainer config={anexoBarConfig} className="aspect-[16/10] w-full">
-              <BarChart data={projetosPorAnexo} margin={{ left: 8, right: 8 }}>
+              <BarChart data={viewData.projetosPorAnexo} margin={{ left: 8, right: 8 }}>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="anexo" tickLine={false} axisLine={false} fontSize={11} />
                 <YAxis tickLine={false} axisLine={false} />
@@ -306,16 +479,26 @@ export function GestaoDashboard() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">
-              Investimento por tipo de projeto (milhões R$)
+              Investimento por tipo de projeto (R$ mi)
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={tipoBarConfig} className="aspect-[16/10] w-full">
-              <BarChart data={investimentoPorTipo} margin={{ left: 8, right: 8 }}>
+              <BarChart data={viewData.investimentoPorTipo} margin={{ left: 8, right: 8 }}>
                 <CartesianGrid vertical={false} />
                 <XAxis dataKey="tipo" tickLine={false} axisLine={false} fontSize={11} />
-                <YAxis tickLine={false} axisLine={false} />
-                <ChartTooltip content={<ChartTooltipContent />} />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => `${v} mi`}
+                />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value) => formatChartCurrency(Number(value), "mi")}
+                    />
+                  }
+                />
                 <Bar dataKey="valor" fill="var(--color-valor)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ChartContainer>
@@ -329,7 +512,7 @@ export function GestaoDashboard() {
             <CardTitle className="text-base">Distribuição de projetos por anexo</CardTitle>
           </CardHeader>
           <CardContent>
-            <DonutChartWithLegend data={distribuicaoAnexo} />
+            <DonutChartWithLegend data={viewData.distribuicaoAnexo} />
           </CardContent>
         </Card>
 
@@ -338,10 +521,59 @@ export function GestaoDashboard() {
             <CardTitle className="text-base">Distribuição por tipologia de projeto</CardTitle>
           </CardHeader>
           <CardContent>
-            <DonutChartWithLegend data={distribuicaoTipologia} legendScrollable />
+            <DonutChartWithLegend data={viewData.distribuicaoTipologia} legendScrollable />
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Unidades gestoras</CardTitle>
+          <CardDescription>
+            Execução financeira por instituição responsável
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead className="text-right">Projetos</TableHead>
+                <TableHead className="text-right">Previsto (R$ mi)</TableHead>
+                <TableHead className="text-right">Executado (R$ mi)</TableHead>
+                <TableHead>% Execução</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {viewData.unidadesGestoras.map((ug) => (
+                <TableRow key={ug.nome}>
+                  <TableCell className="font-medium">{ug.nome}</TableCell>
+                  <TableCell className="text-right tabular-nums">{ug.projetos}</TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatNumber(ug.investimentoPrevisto)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatNumber(ug.investimentoExecutado)}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-blue-600"
+                          style={{ width: `${ug.percentualExecucao}%` }}
+                        />
+                      </div>
+                      <span className="w-10 text-right text-sm tabular-nums">
+                        {ug.percentualExecucao}%
+                      </span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -366,10 +598,17 @@ export function GestaoDashboard() {
                   className="h-8 pl-8"
                   placeholder="Busque por contrato, projeto ou município"
                   value={search}
-                  onChange={(event) => setSearch(event.target.value)}
+                  onChange={(event) => {
+                    setSearch(event.target.value)
+                    resetPage()
+                  }}
                 />
               </div>
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters((prev) => !prev)}
+              >
                 <IconFilter className="size-4" />
                 Filtros
               </Button>
@@ -378,6 +617,34 @@ export function GestaoDashboard() {
               </Button>
             </div>
           </div>
+
+          {showFilters && (
+            <div className="grid gap-4 pt-2 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(v) => {
+                    if (v) {
+                      setStatusFilter(v)
+                      resetPage()
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {gestaoStatusFiltro.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           <Table>
@@ -394,7 +661,7 @@ export function GestaoDashboard() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProjetos.map((projeto) => (
+              {paginatedProjetos.map((projeto) => (
                 <TableRow key={projeto.id}>
                   <TableCell className="max-w-[180px] truncate font-medium">
                     {projeto.nome}
@@ -442,9 +709,31 @@ export function GestaoDashboard() {
           </Table>
         </CardContent>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3">
-          <p className="text-sm text-muted-foreground">
-            1 – {filteredProjetos.length} de {gestaoProjetos.length} itens
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground">
+              {rangeStart} – {rangeEnd} de {filteredProjetos.length} itens
+            </p>
+            <div className="flex gap-1">
+              <Button
+                size="icon-sm"
+                variant="outline"
+                disabled={currentPage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                aria-label="Página anterior"
+              >
+                <IconChevronLeft className="size-4" />
+              </Button>
+              <Button
+                size="icon-sm"
+                variant="outline"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                aria-label="Próxima página"
+              >
+                <IconChevronRight className="size-4" />
+              </Button>
+            </div>
+          </div>
           <div className="flex gap-2">
             <Button size="sm">
               <IconTableExport className="size-4" />

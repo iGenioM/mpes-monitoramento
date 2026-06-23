@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic"
 import { useState } from "react"
 
+import { MunicipalEquityRanking } from "@/components/portal/municipal-equity-ranking"
 import { defaultFilters, FiltersPanel } from "@/components/portal/filters-panel"
 import { KpiSection } from "@/components/portal/kpi-section"
 import { RegionalStats } from "@/components/portal/regional-stats"
@@ -45,13 +46,12 @@ export function PortalDashboard() {
     <div className="space-y-8">
       <section className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight">
-          Portal da Transparência — Recuperação do Rio Doce
+          Plataforma de Monitoramento TTAC Rio Doce — Espírito Santo
         </h1>
         <p className="max-w-3xl text-muted-foreground">
-          Acompanhe indicadores, investimentos e ações de recuperação ambiental e
-          socioeconômica nos municípios do Espírito Santo atingidos pelo desastre
-          de Mariana. Utilize os filtros e explore os mapas interativos para
-          detalhar a situação por região.
+          Fiscalização da destinação e execução dos recursos do Termo de Transação
+          e Ajustamento de Conduta do desastre de Mariana, abrangendo investimentos
+          nos municípios atingidos pela bacia do Rio Doce.
         </p>
       </section>
 
@@ -79,6 +79,8 @@ export function PortalDashboard() {
           selectedMunicipalityId={selectedMunicipalityId}
         />
       </section>
+
+      <MunicipalEquityRanking />
 
       <ThematicMap />
     </div>

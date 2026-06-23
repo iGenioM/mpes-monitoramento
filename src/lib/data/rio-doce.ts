@@ -7,24 +7,16 @@ export type ProjectStatus =
 
 export type FilterState = {
   mesorregiao: string
-  estado: string
   municipio: string
-  bioma: string
-  degradacaoPastagem: string
-  territorioEspecial: string
-  vegetacaoNativa: string
-  areaAtendida: string
+  eixoTematico: string
+  statusProjeto: ProjectStatus | "todos"
 }
 
 export const defaultFilters: FilterState = {
   mesorregiao: "todas",
-  estado: "es",
   municipio: "todos",
-  bioma: "todos",
-  degradacaoPastagem: "todos",
-  territorioEspecial: "todos",
-  vegetacaoNativa: "todos",
-  areaAtendida: "todos",
+  eixoTematico: "todos",
+  statusProjeto: "todos",
 }
 
 export const mesorregioes = [
@@ -33,8 +25,6 @@ export const mesorregioes = [
   { value: "noroeste", label: "Noroeste Espírito-Santense" },
   { value: "central", label: "Central Espírito-Santense" },
 ]
-
-export const estados = [{ value: "es", label: "Espírito Santo" }]
 
 export const municipiosAtingidos = [
   { value: "todos", label: "Todos os municípios atingidos", mesorregiao: "todas" },
@@ -51,40 +41,20 @@ export const municipiosAtingidos = [
   { value: "3205014", label: "Sooretama", mesorregiao: "litoral_norte" },
 ]
 
-export const biomas = [
-  { value: "todos", label: "Todos os biomas" },
-  { value: "mata_atlantica", label: "Mata Atlântica" },
-  { value: "restinga", label: "Restinga" },
-  { value: "manguezal", label: "Manguezal" },
-  { value: "transicao", label: "Transição Mata Atlântica / Restinga" },
+export const eixosTematicos = [
+  { value: "todos", label: "Todos os eixos" },
+  { value: "pesca", label: "Pesca e Aquicultura (Anexo 10)" },
+  { value: "saude", label: "Saúde (Anexo 9)" },
+  { value: "saneamento", label: "Saneamento de Águas (Anexo 11)" },
+  { value: "fomento", label: "Fomento Econômico (Anexo 12)" },
+  { value: "infraestrutura", label: "Infraestrutura e Mobilidade" },
+  { value: "ambiental", label: "Recuperação Ambiental" },
+  { value: "assistencia", label: "Assistência Social e Comunidades" },
+  { value: "povos_tradicionais", label: "Povos Tradicionais e Quilombolas" },
 ]
 
-export const degradacaoPastagem = [
-  { value: "todos", label: "Todos os graus" },
-  { value: "baixo", label: "Baixo (0–25%)" },
-  { value: "medio", label: "Médio (26–50%)" },
-  { value: "alto", label: "Alto (51–75%)" },
-  { value: "muito_alto", label: "Muito alto (>75%)" },
-]
-
-export const territoriosEspeciais = [
-  { value: "todos", label: "Todos os territórios" },
-  { value: "uc", label: "Unidades de Conservação" },
-  { value: "ti", label: "Terras Indígenas" },
-  { value: "quilombola", label: "Territórios Quilombolas" },
-  { value: "apa", label: "Área de Proteção Ambiental" },
-]
-
-export const vegetacaoNativa = [
-  { value: "todos", label: "Todos os remanescentes" },
-  { value: "alto", label: "Alto remanescente (>60%)" },
-  { value: "medio", label: "Médio remanescente (30–60%)" },
-  { value: "baixo", label: "Baixo remanescente (<30%)" },
-  { value: "critico", label: "Crítico (<10%)" },
-]
-
-export const areasAtendidas = [
-  { value: "todos", label: "Todas as áreas" },
+export const statusProjetoOptions = [
+  { value: "todos", label: "Todos os status" },
   { value: "em_andamento", label: "Projetos em andamento" },
   { value: "investimento_aprovado", label: "Investimento aprovado" },
   { value: "investimento_planejado", label: "Investimento planejado" },
@@ -105,6 +75,17 @@ export const projectStatusColors: Record<ProjectStatus, string> = {
   investimento_planejado: "#93c5fd",
   em_estudo: "#94a3b8",
   nao_atingido: "#e2e8f0",
+}
+
+const EIXO_FILTER_KEYWORDS: Record<string, string[]> = {
+  pesca: ["Pesca"],
+  saude: ["Saúde"],
+  saneamento: ["Saneamento"],
+  fomento: ["Fomento", "Produtivo"],
+  infraestrutura: ["Infraestrutura"],
+  ambiental: ["Ambiental"],
+  assistencia: ["Assistência"],
+  povos_tradicionais: ["Povos Tradicionais", "Quilombolas"],
 }
 
 export type MunicipalityData = {
@@ -129,11 +110,11 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Colatina",
     mesorregiao: "litoral_norte",
     status: "em_andamento",
-    investimentoTotal: 15_000_000,
-    investimentoPlanejado: 28_000_000,
-    familiasAtendidas: 420,
-    projetos: 6,
-    eixos: ["Saúde", "Pesca", "Produtivo"],
+    investimentoTotal: 285_000_000,
+    investimentoPlanejado: 490_000_000,
+    familiasAtendidas: 4_200,
+    projetos: 28,
+    eixos: ["Saúde", "Pesca", "Fomento Econômico"],
     acoes: ["Renova Rio Doce – Colatina", "Recuperação de margens"],
     ucs: 1,
     terrasIndigenas: 0,
@@ -144,10 +125,10 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Linhares",
     mesorregiao: "litoral_norte",
     status: "investimento_aprovado",
-    investimentoTotal: 22_500_000,
-    investimentoPlanejado: 35_000_000,
-    familiasAtendidas: 680,
-    projetos: 8,
+    investimentoTotal: 320_000_000,
+    investimentoPlanejado: 580_000_000,
+    familiasAtendidas: 6_800,
+    projetos: 35,
     eixos: ["Saúde", "Ambiental", "Pesca"],
     acoes: ["Monitoramento da foz", "Restauração de manguezais"],
     ucs: 2,
@@ -159,11 +140,11 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "São Mateus",
     mesorregiao: "litoral_norte",
     status: "em_andamento",
-    investimentoTotal: 18_700_000,
-    investimentoPlanejado: 42_000_000,
-    familiasAtendidas: 510,
-    projetos: 7,
-    eixos: ["Saúde", "Pesca", "Assistência"],
+    investimentoTotal: 260_000_000,
+    investimentoPlanejado: 440_000_000,
+    familiasAtendidas: 5_100,
+    projetos: 24,
+    eixos: ["Saúde", "Pesca", "Assistência Social"],
     acoes: ["Apoio a pescadores artesanais", "Recuperação costeira"],
     ucs: 1,
     terrasIndigenas: 0,
@@ -174,11 +155,11 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Conceição da Barra",
     mesorregiao: "litoral_norte",
     status: "investimento_planejado",
-    investimentoTotal: 8_200_000,
-    investimentoPlanejado: 19_500_000,
-    familiasAtendidas: 290,
-    projetos: 4,
-    eixos: ["Pesca", "Turismo", "Ambiental"],
+    investimentoTotal: 88_000_000,
+    investimentoPlanejado: 155_000_000,
+    familiasAtendidas: 2_900,
+    projetos: 9,
+    eixos: ["Pesca", "Ambiental"],
     acoes: ["Plano de uso sustentável da restinga"],
     ucs: 0,
     terrasIndigenas: 0,
@@ -189,11 +170,11 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Aracruz",
     mesorregiao: "litoral_norte",
     status: "investimento_aprovado",
-    investimentoTotal: 12_400_000,
-    investimentoPlanejado: 24_000_000,
-    familiasAtendidas: 360,
-    projetos: 5,
-    eixos: ["Ambiental", "Produtivo"],
+    investimentoTotal: 180_000_000,
+    investimentoPlanejado: 310_000_000,
+    familiasAtendidas: 3_600,
+    projetos: 16,
+    eixos: ["Ambiental", "Fomento Econômico"],
     acoes: ["Recuperação de APP", "Agrofloresta"],
     ucs: 1,
     terrasIndigenas: 0,
@@ -204,11 +185,11 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Fundão",
     mesorregiao: "litoral_norte",
     status: "em_estudo",
-    investimentoTotal: 3_100_000,
-    investimentoPlanejado: 11_000_000,
-    familiasAtendidas: 120,
-    projetos: 2,
-    eixos: ["Assistência", "Ambiental"],
+    investimentoTotal: 48_000_000,
+    investimentoPlanejado: 85_000_000,
+    familiasAtendidas: 1_200,
+    projetos: 5,
+    eixos: ["Assistência Social", "Ambiental"],
     acoes: ["Diagnóstico socioambiental"],
     ucs: 0,
     terrasIndigenas: 0,
@@ -219,11 +200,11 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Sooretama",
     mesorregiao: "litoral_norte",
     status: "investimento_planejado",
-    investimentoTotal: 6_800_000,
-    investimentoPlanejado: 14_200_000,
-    familiasAtendidas: 95,
-    projetos: 3,
-    eixos: ["Ambiental", "Turismo"],
+    investimentoTotal: 98_000_000,
+    investimentoPlanejado: 170_000_000,
+    familiasAtendidas: 1_950,
+    projetos: 10,
+    eixos: ["Ambiental", "Povos Tradicionais"],
     acoes: ["Corredor ecológico Sooretama"],
     ucs: 2,
     terrasIndigenas: 0,
@@ -234,11 +215,11 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Baixo Guandu",
     mesorregiao: "noroeste",
     status: "em_andamento",
-    investimentoTotal: 9_600_000,
-    investimentoPlanejado: 21_000_000,
-    familiasAtendidas: 280,
-    projetos: 4,
-    eixos: ["Produtivo", "Saúde"],
+    investimentoTotal: 145_000_000,
+    investimentoPlanejado: 250_000_000,
+    familiasAtendidas: 2_800,
+    projetos: 13,
+    eixos: ["Fomento Econômico", "Saúde"],
     acoes: ["Recuperação de nascentes", "Assistência rural"],
     ucs: 0,
     terrasIndigenas: 0,
@@ -249,10 +230,10 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Marilândia",
     mesorregiao: "noroeste",
     status: "em_estudo",
-    investimentoTotal: 2_400_000,
-    investimentoPlanejado: 8_500_000,
-    familiasAtendidas: 85,
-    projetos: 2,
+    investimentoTotal: 52_000_000,
+    investimentoPlanejado: 90_000_000,
+    familiasAtendidas: 850,
+    projetos: 4,
     eixos: ["Ambiental"],
     acoes: ["Mapeamento de áreas degradadas"],
     ucs: 0,
@@ -264,10 +245,10 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Serra",
     mesorregiao: "central",
     status: "investimento_aprovado",
-    investimentoTotal: 14_900_000,
-    investimentoPlanejado: 31_000_000,
-    familiasAtendidas: 410,
-    projetos: 6,
+    investimentoTotal: 220_000_000,
+    investimentoPlanejado: 380_000_000,
+    familiasAtendidas: 4_100,
+    projetos: 20,
     eixos: ["Saúde", "Saneamento", "Ambiental"],
     acoes: ["Programa Especial de Saúde – Rio Doce"],
     ucs: 0,
@@ -279,11 +260,11 @@ export const municipalitiesData: MunicipalityData[] = [
     name: "Anchieta",
     mesorregiao: "central",
     status: "investimento_planejado",
-    investimentoTotal: 5_500_000,
-    investimentoPlanejado: 12_800_000,
-    familiasAtendidas: 140,
-    projetos: 3,
-    eixos: ["Ambiental", "Turismo"],
+    investimentoTotal: 64_000_000,
+    investimentoPlanejado: 110_000_000,
+    familiasAtendidas: 1_400,
+    projetos: 7,
+    eixos: ["Ambiental", "Infraestrutura"],
     acoes: ["Recuperação de praias e restingas"],
     ucs: 1,
     terrasIndigenas: 0,
@@ -292,14 +273,22 @@ export const municipalitiesData: MunicipalityData[] = [
 ]
 
 export const globalKpis = {
-  metaAreaHa: 500_000,
-  areaRecuperadaHa: 210_987,
-  metaInvestimento: 180_000_000,
-  investimentoRealizado: 12_345_587,
-  imoveis: 4_128,
-  areaImoveisHa: 32_469,
-  projetosApoiados: 125,
-  especiesUtilizadas: 49,
+  envelopeTotalES: 4_200_000_000,
+  totalContratado: 2_850_000_000,
+  investimentoRealizado: 1_340_000_000,
+  metaAreaHa: 280_000,
+  areaRecuperadaHa: 94_500,
+  familiasBeneficiadas: 38_400,
+  projetosAtivos: 312,
+  projetosConcluidos: 87,
+}
+
+function matchesEixoTematico(municipalityEixos: string[], filter: string): boolean {
+  if (filter === "todos") return true
+  const keywords = EIXO_FILTER_KEYWORDS[filter] ?? []
+  return municipalityEixos.some((eixo) =>
+    keywords.some((kw) => eixo.toLowerCase().includes(kw.toLowerCase()))
+  )
 }
 
 export function getMunicipalityById(id: string) {
@@ -314,7 +303,10 @@ export function getFilteredMunicipalities(filters: FilterState) {
     if (filters.municipio !== "todos" && m.id !== filters.municipio) {
       return false
     }
-    if (filters.areaAtendida !== "todos" && m.status !== filters.areaAtendida) {
+    if (!matchesEixoTematico(m.eixos, filters.eixoTematico)) {
+      return false
+    }
+    if (filters.statusProjeto !== "todos" && m.status !== filters.statusProjeto) {
       return false
     }
     return true
@@ -375,4 +367,12 @@ export function getRegionalSummary(
 
 export function getMunicipalityStatus(id: string): ProjectStatus {
   return getMunicipalityById(id)?.status ?? "nao_atingido"
+}
+
+export function getMunicipiosContempladosCount() {
+  return municipalitiesData.filter((m) => m.status !== "nao_atingido").length
+}
+
+export function getTotalFamiliasAtendidas() {
+  return municipalitiesData.reduce((sum, m) => sum + m.familiasAtendidas, 0)
 }

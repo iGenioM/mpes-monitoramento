@@ -15,7 +15,7 @@ export function ThematicMap() {
         <CardTitle>Mapa temático</CardTitle>
       </CardHeader>
       <CardContent>
-        <LayeredMap defaultView="municipio" />
+        <LayeredMap defaultView="municipio" showTabs={false} />
       </CardContent>
     </Card>
   )

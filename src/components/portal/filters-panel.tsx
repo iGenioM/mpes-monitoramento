@@ -17,15 +17,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  areasAtendidas,
-  biomas,
   defaultFilters,
-  degradacaoPastagem,
-  estados,
+  eixosTematicos,
   mesorregioes,
   municipiosAtingidos,
-  territoriosEspeciais,
-  vegetacaoNativa,
+  statusProjetoOptions,
   type FilterState,
 } from "@/lib/data/rio-doce"
 
@@ -116,14 +112,6 @@ export function FiltersPanel({
             onValueChange={(value) => updateField("mesorregiao", value)}
           />
           <FilterSelect
-            id="estado"
-            label="Estado"
-            value={filters.estado}
-            options={estados}
-            onValueChange={(value) => updateField("estado", value)}
-            disabled
-          />
-          <FilterSelect
             id="municipio"
             label="Município"
             value={filters.municipio}
@@ -131,39 +119,20 @@ export function FiltersPanel({
             onValueChange={(value) => updateField("municipio", value)}
           />
           <FilterSelect
-            id="bioma"
-            label="Bioma"
-            value={filters.bioma}
-            options={biomas}
-            onValueChange={(value) => updateField("bioma", value)}
+            id="eixo-tematico"
+            label="Eixo temático"
+            value={filters.eixoTematico}
+            options={eixosTematicos}
+            onValueChange={(value) => updateField("eixoTematico", value)}
           />
           <FilterSelect
-            id="degradacao"
-            label="Grau de degradação de pastagem"
-            value={filters.degradacaoPastagem}
-            options={degradacaoPastagem}
-            onValueChange={(value) => updateField("degradacaoPastagem", value)}
-          />
-          <FilterSelect
-            id="territorio"
-            label="Territórios especiais"
-            value={filters.territorioEspecial}
-            options={territoriosEspeciais}
-            onValueChange={(value) => updateField("territorioEspecial", value)}
-          />
-          <FilterSelect
-            id="vegetacao"
-            label="Remanescente de vegetação nativa"
-            value={filters.vegetacaoNativa}
-            options={vegetacaoNativa}
-            onValueChange={(value) => updateField("vegetacaoNativa", value)}
-          />
-          <FilterSelect
-            id="area"
-            label="Áreas atendidas"
-            value={filters.areaAtendida}
-            options={areasAtendidas}
-            onValueChange={(value) => updateField("areaAtendida", value)}
+            id="status-projeto"
+            label="Status do projeto"
+            value={filters.statusProjeto}
+            options={statusProjetoOptions}
+            onValueChange={(value) =>
+              updateField("statusProjeto", value as FilterState["statusProjeto"])
+            }
           />
         </div>
 

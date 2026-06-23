@@ -277,22 +277,9 @@ export function LayeredMap({
     </div>
   )
 
+
   if (!showTabs) {
-    return (
-      <div className="space-y-4">
-        {mapContent(currentView)}
-        {showBadges ? (
-          <div className="flex flex-wrap gap-2">
-            <Badge variant="secondary">Visualização: {currentView.label}</Badge>
-            <Badge variant="outline">
-              {loadedCount}/{projectPins ? layerFiles.length - 1 : layerFiles.length}{" "}
-              camadas carregadas
-            </Badge>
-            <Badge variant="outline">{layerSources.rio_doce}</Badge>
-          </div>
-        ) : null}
-      </div>
-    )
+    return mapContent(currentView)
   }
 
   return (
@@ -312,17 +299,6 @@ export function LayeredMap({
           </TabsContent>
         ))}
       </Tabs>
-
-      {showBadges ? (
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary">Visualização: {currentView.label}</Badge>
-          <Badge variant="outline">
-            {loadedCount}/{projectPins ? layerFiles.length - 1 : layerFiles.length}{" "}
-            camadas carregadas
-          </Badge>
-          <Badge variant="outline">{layerSources.rio_doce}</Badge>
-        </div>
-      ) : null}
     </div>
   )
 }

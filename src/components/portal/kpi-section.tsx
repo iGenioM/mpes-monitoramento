@@ -8,31 +8,42 @@ import {
   Progress,
   ProgressLabel,
 } from "@/components/ui/progress"
-import { globalKpis } from "@/lib/data/rio-doce"
+import { FundBalanceBar } from "@/components/shared/fund-balance-bar"
+import {
+  getMunicipiosContempladosCount,
+  getTotalFamiliasAtendidas,
+  globalKpis,
+} from "@/lib/data/rio-doce"
 import { formatCurrency, formatNumber, formatPercent } from "@/lib/format"
 
 const metricCards = [
   {
-    label: "Imóveis que incidem nos projetos",
-    value: formatNumber(globalKpis.imoveis),
+    label: "Famílias/pessoas beneficiadas",
+    value: formatNumber(getTotalFamiliasAtendidas()),
   },
   {
-    label: "Área total dos imóveis (ha)",
-    value: formatNumber(globalKpis.areaImoveisHa),
+    label: "Municípios contemplados",
+    value: formatNumber(getMunicipiosContempladosCount()),
   },
   {
-    label: "Projetos apoiados",
-    value: formatNumber(globalKpis.projetosApoiados),
+    label: "Projetos ativos",
+    value: formatNumber(globalKpis.projetosAtivos),
   },
   {
-    label: "Espécies utilizadas",
-    value: formatNumber(globalKpis.especiesUtilizadas),
+    label: "Projetos concluídos",
+    value: formatNumber(globalKpis.projetosConcluidos),
   },
 ]
 
 export function KpiSection() {
   return (
     <section id="indicadores" className="space-y-6">
+      <FundBalanceBar
+        envelopeTotal={globalKpis.envelopeTotalES}
+        totalContratado={globalKpis.totalContratado}
+        investimentoExecutado={globalKpis.investimentoRealizado}
+      />
+
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-2">
@@ -58,13 +69,13 @@ export function KpiSection() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium">
-              Meta de investimento realizado
+              Execução financeira contratada
             </CardTitle>
           </CardHeader>
           <CardContent>
             <Progress
               value={
-                (globalKpis.investimentoRealizado / globalKpis.metaInvestimento) * 100
+                (globalKpis.investimentoRealizado / globalKpis.totalContratado) * 100
               }
             >
               <div className="flex w-full items-center justify-between gap-2">
@@ -74,9 +85,9 @@ export function KpiSection() {
                 <span className="ml-auto text-sm text-muted-foreground tabular-nums">
                   {formatPercent(
                     globalKpis.investimentoRealizado,
-                    globalKpis.metaInvestimento
+                    globalKpis.totalContratado
                   )}{" "}
-                  de {formatCurrency(globalKpis.metaInvestimento)}
+                  de {formatCurrency(globalKpis.totalContratado)}
                 </span>
               </div>
             </Progress>
