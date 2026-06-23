@@ -52,13 +52,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { LabeledSelect } from "@/components/ui/labeled-select"
 import { Switch } from "@/components/ui/switch"
 import {
   Table,
@@ -620,29 +614,15 @@ export function GestaoDashboard() {
 
           {showFilters && (
             <div className="grid gap-4 pt-2 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(v) => {
-                    if (v) {
-                      setStatusFilter(v)
-                      resetPage()
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {gestaoStatusFiltro.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <LabeledSelect
+                label="Status"
+                value={statusFilter}
+                options={gestaoStatusFiltro}
+                onValueChange={(v) => {
+                  setStatusFilter(v)
+                  resetPage()
+                }}
+              />
             </div>
           )}
         </CardHeader>

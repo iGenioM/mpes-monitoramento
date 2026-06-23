@@ -8,14 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { LabeledSelect } from "@/components/ui/labeled-select"
 import {
   defaultFilters,
   eixosTematicos,
@@ -30,44 +23,6 @@ type FiltersPanelProps = {
   onChange: (filters: FilterState) => void
   onApply: () => void
   onClear: () => void
-}
-
-function FilterSelect({
-  id,
-  label,
-  value,
-  options,
-  onValueChange,
-  disabled,
-}: {
-  id: string
-  label: string
-  value: string
-  options: Array<{ value: string; label: string }>
-  onValueChange: (value: string) => void
-  disabled?: boolean
-}) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Select
-        value={value}
-        onValueChange={(next) => next && onValueChange(next)}
-        disabled={disabled}
-      >
-        <SelectTrigger id={id} className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  )
 }
 
 export function FiltersPanel({
@@ -104,28 +59,28 @@ export function FiltersPanel({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <FilterSelect
+          <LabeledSelect
             id="mesorregiao"
             label="Mesorregião"
             value={filters.mesorregiao}
             options={mesorregioes}
             onValueChange={(value) => updateField("mesorregiao", value)}
           />
-          <FilterSelect
+          <LabeledSelect
             id="municipio"
             label="Município"
             value={filters.municipio}
             options={municipioOptions}
             onValueChange={(value) => updateField("municipio", value)}
           />
-          <FilterSelect
+          <LabeledSelect
             id="eixo-tematico"
             label="Eixo temático"
             value={filters.eixoTematico}
             options={eixosTematicos}
             onValueChange={(value) => updateField("eixoTematico", value)}
           />
-          <FilterSelect
+          <LabeledSelect
             id="status-projeto"
             label="Status do projeto"
             value={filters.statusProjeto}

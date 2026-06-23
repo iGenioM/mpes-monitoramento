@@ -33,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { LabeledSelect } from "@/components/ui/labeled-select"
 import {
   Pagination,
   PaginationContent,
@@ -43,13 +43,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -142,6 +135,15 @@ export function PainelDashboard() {
 
   const startItem = filteredProjetos.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1
   const endItem = Math.min(currentPage * PAGE_SIZE, filteredProjetos.length)
+
+  function clearFilters() {
+    setMunicipio("Todos")
+    setTematica("Todas")
+    setStatusFiltro("Todos")
+    setSearch("")
+    setTableSearch("")
+    setPage(1)
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 sm:p-6">
@@ -296,6 +298,12 @@ export function PainelDashboard() {
       </div>
 
       <Card size="sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="text-sm font-medium">Filtros</CardTitle>
+          <Button variant="outline" size="sm" onClick={clearFilters}>
+            Limpar filtros
+          </Button>
+        </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
           <FilterSelect
             id="municipio"
@@ -457,21 +465,13 @@ function FilterSelect({
   onChange: (value: string) => void
 }) {
   return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Select value={value} onValueChange={(next) => next && onChange(next)}>
-        <SelectTrigger id={id} className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option} value={option}>
-              {option}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+    <LabeledSelect
+      id={id}
+      label={label}
+      value={value}
+      options={options.map((option) => ({ value: option, label: option }))}
+      onValueChange={onChange}
+    />
   )
 }
 
